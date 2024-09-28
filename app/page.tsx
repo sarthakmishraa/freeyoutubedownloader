@@ -12,7 +12,7 @@ export default function Home() {
       <p className="text-xl leading-8 my-7 text-center mb-16">No complicated sign-ups or subscriptions needed. Our platform is designed with simplicity in mind. Simply paste the YouTube link, choose your preferences, and download. It&apos;s that easy!</p>
       <Link
         href="/dashboard"
-        className="flex items-center space-x-1 text-[#1a3353] bg-[#e6f1ff] hover:bg-[#1a3353] hover:text-[#e6f1ff] text-xl p-1 m-1 border-2 border-[#b1bac9] rounded-md transition-all"
+        className="flex items-center space-x-1 text-[#1a3353] bg-[#e6f1ff] hover:bg-[#1a3353] hover:text-[#e6f1ff] text-xl p-2 m-1 border-2 border-[#b1bac9] rounded-md transition-all"
       >
         <p>
           Get Started
