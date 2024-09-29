@@ -3,15 +3,16 @@
 import Link from "next/link";
 import { FaSearch } from "react-icons/fa";
 import { IoHome } from "react-icons/io5";
-import { FaCheckCircle } from "react-icons/fa";
 import { toast } from "react-toastify";
-import Image from "next/image";
 import { useState } from "react";
 import ytdl from "ytdl-core";
 
 import Heading from "../components/Heading";
+import { LoadingSearchButton } from "../components/LoadingSearchButton";
+import { VideoInfo } from "../components/VideoInfo";
+import { ValidUrl } from "../components/ValidUrl";
 
-interface videoInfoType {
+export interface videoInfoType {
     videoId: string,
     title: string,
     thumbnail: string,
@@ -20,6 +21,7 @@ interface videoInfoType {
 const Dashboard = () => {
     const [url, setUrl] = useState<string | null>(null);
     const [isUrlValid, setIsUrlValid] = useState<boolean>(false);
+    const [searching, setSearching] = useState<boolean>(false);
     const [videoInfo, setVideoInfo] = useState<videoInfoType | null>(null);
 
     const handleDownload = async () => {
@@ -31,6 +33,7 @@ const Dashboard = () => {
                 toast.success("URL verified");
 
                 if(isValid){
+                    setSearching(true);
                     const response = await fetch(`/api?url=${ encodeURIComponent(url) }`).then(res => res.json());
                     // console.log(response);
                     const tempVideoInfo = {
@@ -38,9 +41,11 @@ const Dashboard = () => {
                         title: response.title,
                         thumbnail: response.thumbnail
                     };
+                    setSearching(false);
                     setVideoInfo(tempVideoInfo);
                 }
                 else {
+                    setSearching(false);
                     toast.error("URL is invalid");
                 }
             }
@@ -63,15 +68,21 @@ const Dashboard = () => {
                 onChange={(e) => setUrl(e.target.value)}
             />
             <div className="flex space-x-4">
-                <button
-                    className="text-[#1a3353] bg-[#e6f1ff] hover:bg-[#1a3353] hover:text-[#e6f1ff] text-xl p-2 m-1 border-2 border-[#b1bac9] rounded-md transition-all"
-                    onClick={ handleDownload }
-                >
-                    <div className="flex flex-row items-center space-x-1">
-                        <p>Find Video</p>
-                        <FaSearch />
-                    </div>
-                </button>
+                {
+                    searching ? (
+                        <LoadingSearchButton />
+                    ):(
+                        <button
+                            className="text-[#1a3353] bg-[#e6f1ff] hover:bg-[#1a3353] hover:text-[#e6f1ff] text-xl p-2 m-1 border-2 border-[#b1bac9] rounded-md transition-all"
+                            onClick={ handleDownload }
+                        >
+                            <div className="flex flex-row items-center space-x-1">
+                                <p>Find Video</p>
+                                <FaSearch />
+                            </div>
+                        </button>
+                    )
+                }
                 <Link
                     href="/"
                     className="text-[#1a3353] bg-[#e6f1ff] hover:bg-[#1a3353] hover:text-[#e6f1ff] text-xl p-2 m-1 border-2 border-[#b1bac9] rounded-md transition-all"
@@ -84,24 +95,11 @@ const Dashboard = () => {
             </div>
             {
                 isUrlValid &&
-                <div className="text-xl flex items-center space-x-1">
-                    <FaCheckCircle size={28} color="lightgreen" />
-                    <p>URL is valid</p>
-                </div>
+                <ValidUrl />
             }
             {
                 videoInfo &&
-                <div>
-                    <Image
-                        key={ videoInfo.videoId }
-                        alt={ videoInfo.title }
-                        src={ videoInfo.thumbnail }
-                        width={ 480 }
-                        height={ 360 }
-                        className="rounded-md"
-                    />
-                    <p className="text-xl text-center">Video Title: { videoInfo.title }</p>
-                </div>
+                <VideoInfo videoInfo={ videoInfo } />
             }
         </div>
     )
