@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FaSearch } from "react-icons/fa";
 import { IoHome } from "react-icons/io5";
+import { FaDownload } from "react-icons/fa6";
 import { toast } from "react-toastify";
 import { useState } from "react";
 import ytdl from "ytdl-core";
@@ -18,13 +19,23 @@ export interface videoInfoType {
     thumbnail: string,
 }
 
+interface videoFormatType {
+    itag: number,
+    mimeType: string,
+    hasAudio: boolean,
+    hasVideo: boolean,
+    qualityLabel: string,
+    container: string
+}
+
 const Dashboard = () => {
     const [url, setUrl] = useState<string | null>(null);
     const [isUrlValid, setIsUrlValid] = useState<boolean>(false);
     const [searching, setSearching] = useState<boolean>(false);
     const [videoInfo, setVideoInfo] = useState<videoInfoType | null>(null);
+    const [videoFormats, setVideoFormats] = useState<videoFormatType[]>([]);
 
-    const handleDownload = async () => {
+    const handleFindVideo = async () => {
         try {
             if(url){
                 const videoId = ytdl.getURLVideoID(url);
@@ -35,7 +46,26 @@ const Dashboard = () => {
                 if(isValid){
                     setSearching(true);
                     const response = await fetch(`/api?url=${ encodeURIComponent(url) }`).then(res => res.json());
-                    // console.log(response);
+                    const allFormats = response.formats;
+                    console.log(allFormats);
+
+                    let extractedFormats: videoFormatType[] = [];
+
+                    for (let index = 0; index < allFormats.length; index++) {
+                        const currFormat = allFormats[index];
+                        const element: videoFormatType = {
+                            itag: currFormat.itag,
+                            mimeType: currFormat.mimeType,
+                            hasAudio: currFormat.hasAudio,
+                            hasVideo: currFormat.hasVideo,
+                            qualityLabel: currFormat.qualityLabel,
+                            container: currFormat.container
+                        };
+                        if(videoFormats)
+                        extractedFormats = [...extractedFormats, element];
+                    }
+                    setVideoFormats(extractedFormats);
+
                     const tempVideoInfo = {
                         videoId: videoId,
                         title: response.title,
@@ -74,7 +104,7 @@ const Dashboard = () => {
                     ):(
                         <button
                             className="text-[#1a3353] bg-[#e6f1ff] hover:bg-[#1a3353] hover:text-[#e6f1ff] text-xl p-2 m-1 border-2 border-[#b1bac9] rounded-md transition-all"
-                            onClick={ handleDownload }
+                            onClick={ handleFindVideo }
                         >
                             <div className="flex flex-row items-center space-x-1">
                                 <p>Find Video</p>
@@ -100,6 +130,29 @@ const Dashboard = () => {
             {
                 videoInfo &&
                 <VideoInfo videoInfo={ videoInfo } />
+            }
+            {
+                videoFormats.length > 0 &&
+                <div className="flex flex-col justify-center space-y-4">
+                    <p className="text-xl">Select format to download</p>
+                    <select className="text-lg text-[#1a3353] p-2 rounded-md">
+                        {
+                            videoFormats.map((format) => (
+                                <option key={ format.mimeType } value={ format.qualityLabel } >
+                                    { format.qualityLabel } { format.container }
+                                </option>
+                            ))
+                        }
+                    </select>
+                    <button
+                        className="text-[#1a3353] bg-[#e6f1ff] hover:bg-[#1a3353] hover:text-[#e6f1ff] text-xl p-2 m-1 border-2 border-[#b1bac9] rounded-md transition-all"
+                    >
+                        <div className="flex flex-row justify-center items-center space-x-1">
+                            <p>Download</p>
+                            <FaDownload />
+                        </div>
+                    </button>
+                </div>
             }
         </div>
     )
