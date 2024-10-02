@@ -34,6 +34,7 @@ const Dashboard = () => {
     const [searching, setSearching] = useState<boolean>(false);
     const [videoInfo, setVideoInfo] = useState<videoInfoType | null>(null);
     const [videoFormats, setVideoFormats] = useState<videoFormatType[]>([]);
+    const [formatToDownload, setFormatToDownload] = useState<string>("videoandaudio");
 
     const handleFindVideo = async () => {
         try {
@@ -47,7 +48,6 @@ const Dashboard = () => {
                     setSearching(true);
                     const response = await fetch(`/api?url=${ encodeURIComponent(url) }`).then(res => res.json());
                     const allFormats = response.formats;
-                    console.log(allFormats);
 
                     let extractedFormats: videoFormatType[] = [];
 
@@ -85,8 +85,15 @@ const Dashboard = () => {
         }
         catch(error) {
             console.log(error);
-            toast.error("URL is not valid");
+            toast.error("Server error");
         }
+    };
+
+    const handleDownload = async () => {
+        if(url){
+            await fetch(`/api?url=${ encodeURIComponent(url) }&format=${ formatToDownload }`).then(res => res.json());
+        }
+        
     };
 
     return(
@@ -129,30 +136,32 @@ const Dashboard = () => {
             }
             {
                 videoInfo &&
-                <VideoInfo videoInfo={ videoInfo } />
-            }
-            {
-                videoFormats.length > 0 &&
-                <div className="flex flex-col justify-center space-y-4">
-                    <p className="text-xl">Select format to download</p>
-                    <select className="text-lg text-[#1a3353] p-2 rounded-md">
-                        {
-                            videoFormats.map((format) => (
-                                <option key={ format.mimeType } value={ format.qualityLabel } >
-                                    { format.qualityLabel } { format.container }
-                                </option>
-                            ))
-                        }
-                    </select>
-                    <button
-                        className="text-[#1a3353] bg-[#e6f1ff] hover:bg-[#1a3353] hover:text-[#e6f1ff] text-xl p-2 m-1 border-2 border-[#b1bac9] rounded-md transition-all"
-                    >
-                        <div className="flex flex-row justify-center items-center space-x-1">
-                            <p>Download</p>
-                            <FaDownload />
-                        </div>
-                    </button>
-                </div>
+                <>
+                    <VideoInfo videoInfo={ videoInfo } />
+                    <div className="flex flex-col justify-center space-y-4">
+                        <p className="text-xl">Select format to download</p>
+                        <select className="text-lg text-[#1a3353] p-2 rounded-md" onChange={(e) => setFormatToDownload(e.target.value)}>
+                            <option value={"videoandaudio"}>
+                                Video
+                            </option>
+                            <option value={"audioonly"}>
+                                Audio
+                            </option>
+                            <option value={"videoonly"}>
+                                Video (No Audio)
+                            </option>
+                        </select>
+                        <button
+                            onClick={ handleDownload }
+                            className="text-[#1a3353] bg-[#e6f1ff] hover:bg-[#1a3353] hover:text-[#e6f1ff] text-xl p-2 m-1 border-2 border-[#b1bac9] rounded-md transition-all"
+                        >
+                            <div className="flex flex-row justify-center items-center space-x-1">
+                                <p>Download</p>
+                                <FaDownload />
+                            </div>
+                        </button>
+                    </div>
+                </>
             }
         </div>
     )
