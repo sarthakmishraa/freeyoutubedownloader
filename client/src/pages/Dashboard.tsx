@@ -32,10 +32,33 @@ export const Dashboard = () => {
     const [videoFormats, setVideoFormats] = useState<videoFormatType[]>([]);
     const [formatToDownload, setFormatToDownload] = useState<string>("videoandaudio");
 
+    const backendURL = "http://localhost:3000/";
+
+    const handleFindVideo = async () => {
+        if(url && url.length>0) {
+            setSearching(true);
+
+            const response = await fetch(backendURL, {
+                mode: "no-cors",
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(url)
+            }).then(res => res.json());
+            
+            // setIsUrlValid based on the response
+            setIsUrlValid(response.message);
+
+            console.log(response);
+            setSearching(false);
+        }
+        
+    }
+
     return(
         <div className="space-y-8 text-[#e6f1ff] py-10 px-40 flex flex-col items-center">
             <Heading />
-            { url }
             <input
                 placeholder="Enter URL"
                 className="p-2 mt-10 m-6 rounded-lg w-[50%] text-gray-800"
@@ -48,6 +71,7 @@ export const Dashboard = () => {
                     ):(
                         <button
                             className="text-[#1a3353] bg-[#e6f1ff] hover:bg-[#1a3353] hover:text-[#e6f1ff] text-xl p-2 m-1 border-2 border-[#b1bac9] rounded-md transition-all"
+                            onClick={ handleFindVideo }
                         >
                             <div className="flex flex-row items-center space-x-1">
                                 <p>Find Video</p>
